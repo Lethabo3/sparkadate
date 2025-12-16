@@ -1,5 +1,9 @@
 import express from 'express';
 import cors from 'cors';
+app.use(cors({
+    origin: ['https://lethabo3.github.io', 'http://localhost:3000'],
+    credentials: true
+}));
 import dotenv from 'dotenv';
 
 import authRoutes from './routes/auth.js';
