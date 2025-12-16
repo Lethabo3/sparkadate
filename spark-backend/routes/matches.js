@@ -83,21 +83,37 @@ router.post('/find', authenticateToken, async (req, res) => {
             .gte('age', preferences?.age_min || 18)
             .lte('age', preferences?.age_max || 99);
 
-        if (!candidates || candidates.length === 0) {
-            // Add to queue
-            await supabase
-                .from('match_queue')
-                .upsert({ user_id: userId, is_active: true });
+if (!candidates || candidates.length === 0) {
+    // Add to queue
+    await supabase
+        .from('match_queue')
+        .upsert({ user_id: userId, is_active: true });
 
-            return res.json({ match: null, queued: true });
-        }
+    return res.json({ match: null, queued: true });
+}
 
-        // Filter by seeking preferences
-        const validCandidates = candidates.filter(c => {
-            const userSeeks = user.seeking === 'everyone' || user.seeking === c.gender + 's';
-            const candidateSeeks = c.seeking === 'everyone' || c.seeking === user.gender + 's';
-            return userSeeks && candidateSeeks;
-        });
+// NEW CODE - Add this block here
+const { data: activeMatchUserIds } = await supabase
+    .from('matches')
+    .select('user_a_id, user_b_id')
+    .eq('status', 'active');
+
+const matchedUserIds = new Set();
+activeMatchUserIds?.forEach(m => {
+    matchedUserIds.add(m.user_a_id);
+    matchedUserIds.add(m.user_b_id);
+});
+
+const availableCandidates = candidates.filter(c => !matchedUserIds.has(c.id));
+// END NEW CODE
+
+// UPDATED CODE - Change 'candidates' to 'availableCandidates'
+const validCandidates = availableCandidates.filter(c => {
+    const genderMap = { male: 'men', female: 'women' };
+    const userSeeks = user.seeking === 'everyone' || user.seeking === genderMap[c.gender];
+    const candidateSeeks = c.seeking === 'everyone' || c.seeking === genderMap[user.gender];
+    return userSeeks && candidateSeeks;
+});
 
         if (validCandidates.length === 0) {
             await supabase
