@@ -5,7 +5,43 @@ import { calculateCompatibility } from '../services/gemini.js';
 
 const router = express.Router();
 
-// Debug endpoint - add here
+// Helper function to add user to queue
+async function addToQueue(userId) {
+    const { data: existingEntry } = await supabase
+        .from('match_queue')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
+
+    if (existingEntry) {
+        await supabase
+            .from('match_queue')
+            .update({ 
+                is_active: true, 
+                entered_queue_at: new Date().toISOString() 
+            })
+            .eq('user_id', userId);
+    } else {
+        await supabase
+            .from('match_queue')
+            .insert({ 
+                user_id: userId, 
+                is_active: true,
+                entered_queue_at: new Date().toISOString(),
+                priority_score: 0
+            });
+    }
+}
+
+// Helper function to remove user from queue
+async function removeFromQueue(userId) {
+    await supabase
+        .from('match_queue')
+        .update({ is_active: false })
+        .eq('user_id', userId);
+}
+
+// Debug endpoint
 router.get('/debug', authenticateToken, async (req, res) => {
     const userId = req.user.id;
     
@@ -19,6 +55,11 @@ router.get('/debug', authenticateToken, async (req, res) => {
         .from('users')
         .select('*')
         .neq('id', userId);
+    
+    const { data: queuedUsers } = await supabase
+        .from('match_queue')
+        .select('*')
+        .eq('is_active', true);
     
     const genderMap = { man: 'men', woman: 'women' };
     
@@ -34,7 +75,8 @@ router.get('/debug', authenticateToken, async (req, res) => {
     
     res.json({
         currentUser: { gender: user.gender, seeking: user.seeking },
-        candidates: results
+        candidates: results,
+        activeQueue: queuedUsers
     });
 });
 
@@ -58,7 +100,6 @@ router.get('/current', authenticateToken, async (req, res) => {
             return res.json({ match: null });
         }
 
-        // Return partner info (not the requesting user)
         const partner = match.user_a_id === userId ? match.user_b : match.user_a;
 
         res.json({
@@ -97,88 +138,129 @@ router.post('/find', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: 'Already have an active match' });
         }
 
-        // Get user data and preferences
+        // Get current user data
         const { data: user } = await supabase
             .from('users')
             .select('*, user_preferences(*), personality_profiles(*)')
             .eq('id', userId)
             .single();
 
-            const preferences = user.user_preferences?.[0] || user.user_preferences;
-        // Find potential matches
-        const { data: candidates } = await supabase
-            .from('users')
-            .select('*, personality_profiles(*), interest_mappings(*)')
-            .neq('id', userId)
+        const preferences = user.user_preferences?.[0] || user.user_preferences;
+        const genderMap = { man: 'men', woman: 'women' };
+
+        // STEP 1: Check queue first for waiting compatible users
+        const { data: queuedUsers } = await supabase
+            .from('match_queue')
+            .select(`
+                user_id,
+                entered_queue_at,
+                priority_score,
+                users!inner(
+                    id, display_name, age, gender, seeking,
+                    is_active, is_banned,
+                    personality_profiles(*),
+                    interest_mappings(*)
+                )
+            `)
             .eq('is_active', true)
-            .eq('is_banned', false)
-            .gte('age', preferences?.age_min || 18)
-            .lte('age', preferences?.age_max || 99);
+            .neq('user_id', userId)
+            .order('priority_score', { ascending: false })
+            .order('entered_queue_at', { ascending: true });
 
-if (!candidates || candidates.length === 0) {
-    // Add to queue
-    await supabase
-        .from('match_queue')
-        .upsert({ user_id: userId, is_active: true });
+        // Filter queued users for compatibility
+        const compatibleQueuedUsers = queuedUsers?.filter(q => {
+            const candidate = q.users;
+            if (!candidate.is_active || candidate.is_banned) return false;
+            if (candidate.age < (preferences?.age_min || 18)) return false;
+            if (candidate.age > (preferences?.age_max || 99)) return false;
+            
+            const userSeeksCandidate = user.seeking === 'everyone' || user.seeking === genderMap[candidate.gender];
+            const candidateSeeksUser = candidate.seeking === 'everyone' || candidate.seeking === genderMap[user.gender];
+            return userSeeksCandidate && candidateSeeksUser;
+        }) || [];
 
-    return res.json({ match: null, queued: true });
-}
+        let selectedCandidate = null;
+        let matchedFromQueue = false;
 
-// NEW CODE - Add this block here
-const { data: activeMatchUserIds } = await supabase
-    .from('matches')
-    .select('user_a_id, user_b_id')
-    .eq('status', 'active');
+        if (compatibleQueuedUsers.length > 0) {
+            // Match with longest-waiting compatible user from queue
+            selectedCandidate = compatibleQueuedUsers[0].users;
+            matchedFromQueue = true;
+            
+            console.log('=== QUEUE MATCH ===');
+            console.log(`Matched ${user.display_name} with queued user ${selectedCandidate.display_name}`);
+            console.log(`Queue wait time: ${Date.now() - new Date(compatibleQueuedUsers[0].entered_queue_at).getTime()}ms`);
+        } else {
+            // STEP 2: Fall back to searching all users
+            const { data: candidates } = await supabase
+                .from('users')
+                .select('*, personality_profiles(*), interest_mappings(*)')
+                .neq('id', userId)
+                .eq('is_active', true)
+                .eq('is_banned', false)
+                .gte('age', preferences?.age_min || 18)
+                .lte('age', preferences?.age_max || 99);
 
-const matchedUserIds = new Set();
-activeMatchUserIds?.forEach(m => {
-    matchedUserIds.add(m.user_a_id);
-    matchedUserIds.add(m.user_b_id);
-});
+            if (!candidates || candidates.length === 0) {
+                await addToQueue(userId);
+                return res.json({ match: null, queued: true });
+            }
 
-const availableCandidates = candidates.filter(c => !matchedUserIds.has(c.id));
+            // Filter out users already in active matches
+            const { data: activeMatchUserIds } = await supabase
+                .from('matches')
+                .select('user_a_id, user_b_id')
+                .eq('status', 'active');
 
-const validCandidates = availableCandidates.filter(c => {
-    const genderMap = { man: 'men', woman: 'women' };
-    const userSeeks = user.seeking === 'everyone' || user.seeking === genderMap[c.gender];
-    const candidateSeeks = c.seeking === 'everyone' || c.seeking === genderMap[user.gender];
-    return userSeeks && candidateSeeks;
-});
+            const matchedUserIds = new Set();
+            activeMatchUserIds?.forEach(m => {
+                matchedUserIds.add(m.user_a_id);
+                matchedUserIds.add(m.user_b_id);
+            });
 
-console.log('=== MATCHING DEBUG ===');
-console.log('Current user:', {
-    id: userId,
-    gender: user.gender,
-    seeking: user.seeking
-});
-console.log('Total candidates from DB:', candidates?.length);
-console.log('Available after active filter:', availableCandidates?.length);
+            const availableCandidates = candidates.filter(c => !matchedUserIds.has(c.id));
 
-availableCandidates.forEach(c => {
-    const genderMap = { man: 'men', woman: 'women' };
-    const userSeeks = user.seeking === 'everyone' || user.seeking === genderMap[c.gender];
-    const candidateSeeks = c.seeking === 'everyone' || c.seeking === genderMap[user.gender];
-    console.log(`Candidate ${c.display_name}: gender=${c.gender}, seeking=${c.seeking}, userSeeks=${userSeeks}, candidateSeeks=${candidateSeeks}`);
-});
-
-console.log('Valid candidates after seeking filter:', validCandidates?.length);
-console.log('=== END DEBUG ===');
-
-        if (validCandidates.length === 0) {
-            await supabase
+            // Filter out users already in queue (they're waiting, not immediately available)
+            const { data: queuedUserIds } = await supabase
                 .from('match_queue')
-                .upsert({ user_id: userId, is_active: true });
+                .select('user_id')
+                .eq('is_active', true);
 
-            return res.json({ match: null, queued: true });
+            const queuedIds = new Set(queuedUserIds?.map(q => q.user_id) || []);
+            const nonQueuedCandidates = availableCandidates.filter(c => !queuedIds.has(c.id));
+
+            const validCandidates = nonQueuedCandidates.filter(c => {
+                const userSeeksCandidate = user.seeking === 'everyone' || user.seeking === genderMap[c.gender];
+                const candidateSeeksUser = c.seeking === 'everyone' || c.seeking === genderMap[user.gender];
+                return userSeeksCandidate && candidateSeeksUser;
+            });
+
+            console.log('=== MATCHING DEBUG ===');
+            console.log('Current user:', { id: userId, gender: user.gender, seeking: user.seeking });
+            console.log('Queued compatible users:', compatibleQueuedUsers.length);
+            console.log('Total candidates from DB:', candidates?.length);
+            console.log('Available after active match filter:', availableCandidates?.length);
+            console.log('Available after queue filter:', nonQueuedCandidates?.length);
+            console.log('Valid after seeking filter:', validCandidates?.length);
+            console.log('=== END DEBUG ===');
+
+            if (validCandidates.length === 0) {
+                await addToQueue(userId);
+                return res.json({ match: null, queued: true });
+            }
+
+            selectedCandidate = validCandidates[0];
+            
+            console.log('=== DIRECT MATCH ===');
+            console.log(`Matched ${user.display_name} with ${selectedCandidate.display_name}`);
         }
 
-        // Calculate compatibility with top candidate
-        const candidate = validCandidates[0];
+        // Calculate compatibility
         const compatibility = await calculateCompatibility(
             user.personality_profiles,
-            candidate.personality_profiles,
+            selectedCandidate.personality_profiles,
             [],
-            candidate.interest_mappings || []
+            selectedCandidate.interest_mappings || []
         );
 
         // Create match
@@ -189,7 +271,7 @@ console.log('=== END DEBUG ===');
             .from('matches')
             .insert({
                 user_a_id: userId,
-                user_b_id: candidate.id,
+                user_b_id: selectedCandidate.id,
                 compatibility_score: compatibility?.compatibility_score || 0.5,
                 recommended_reveal_hours: revealHours,
                 reveal_available_at: revealAvailableAt.toISOString()
@@ -198,6 +280,12 @@ console.log('=== END DEBUG ===');
             .single();
 
         if (error) throw error;
+
+        // STEP 3: Clean up queue for both users
+        await removeFromQueue(userId);
+        await removeFromQueue(selectedCandidate.id);
+
+        console.log(`Queue cleanup: Removed ${userId} and ${selectedCandidate.id} from queue`);
 
         // Create conversation analytics entry
         await supabase
@@ -208,11 +296,12 @@ console.log('=== END DEBUG ===');
             match: {
                 id: match.id,
                 partner: {
-                    id: candidate.id,
-                    display_name: candidate.display_name,
-                    age: candidate.age
+                    id: selectedCandidate.id,
+                    display_name: selectedCandidate.display_name,
+                    age: selectedCandidate.age
                 },
-                reveal_available_at: match.reveal_available_at
+                reveal_available_at: match.reveal_available_at,
+                matched_from_queue: matchedFromQueue
             }
         });
     } catch (error) {
@@ -313,6 +402,48 @@ router.post('/:matchId/exit', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Exit match error:', error);
         res.status(500).json({ error: 'Failed to exit match' });
+    }
+});
+
+// Get queue status
+router.get('/queue/status', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const { data: queueEntry } = await supabase
+            .from('match_queue')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('is_active', true)
+            .single();
+
+        if (!queueEntry) {
+            return res.json({ inQueue: false });
+        }
+
+        const waitTime = Date.now() - new Date(queueEntry.entered_queue_at).getTime();
+
+        res.json({
+            inQueue: true,
+            enteredAt: queueEntry.entered_queue_at,
+            waitTimeMs: waitTime,
+            priorityScore: queueEntry.priority_score
+        });
+    } catch (error) {
+        console.error('Queue status error:', error);
+        res.status(500).json({ error: 'Failed to get queue status' });
+    }
+});
+
+// Leave queue manually
+router.post('/queue/leave', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        await removeFromQueue(userId);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Leave queue error:', error);
+        res.status(500).json({ error: 'Failed to leave queue' });
     }
 });
 
