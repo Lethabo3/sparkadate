@@ -113,6 +113,11 @@ const validCandidates = availableCandidates.filter(c => {
     return userSeeks && candidateSeeks;
 });
 
+        console.log('User:', user.id, user.gender, user.seeking);
+console.log('Candidates found:', candidates?.length);
+console.log('Available (not in active match):', availableCandidates?.length);
+console.log('Valid (seeking match):', validCandidates?.length);
+        
         if (validCandidates.length === 0) {
             await supabase
                 .from('match_queue')
