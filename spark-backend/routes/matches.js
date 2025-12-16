@@ -105,11 +105,9 @@ activeMatchUserIds?.forEach(m => {
 });
 
 const availableCandidates = candidates.filter(c => !matchedUserIds.has(c.id));
-// END NEW CODE
 
-// UPDATED CODE - Change 'candidates' to 'availableCandidates'
 const validCandidates = availableCandidates.filter(c => {
-    const genderMap = { male: 'men', female: 'women' };
+    const genderMap = { man: 'men', woman: 'women' };
     const userSeeks = user.seeking === 'everyone' || user.seeking === genderMap[c.gender];
     const candidateSeeks = c.seeking === 'everyone' || c.seeking === genderMap[user.gender];
     return userSeeks && candidateSeeks;
