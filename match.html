@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Spark">
+    <link rel="apple-touch-icon" href="blueocean.jpeg">
+    <title>Spark – Finding Match</title>
+    <style>
+        @font-face {
+            font-family: 'CabinetGrotesk-Medium';
+            src: url('./fonts/CabinetGrotesk-Medium.woff2') format('woff2'),
+                 url('./fonts/CabinetGrotesk-Medium.woff') format('woff'),
+                 url('./fonts/CabinetGrotesk-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-display: swap;
+            font-style: normal;
+        }
+
+        :root {
+            --color-background: #000000;
+            --color-surface: #FFFFFF;
+            --color-text-primary: #FFFFFF;
+            --color-text-secondary: rgba(255, 255, 255, 0.65);
+            --color-skeleton: rgba(255, 255, 255, 0.06);
+            --color-skeleton-shine: rgba(255, 255, 255, 0.12);
+            --font-heading: 'CabinetGrotesk-Medium', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: var(--font-heading);
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .match-screen {
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            max-width: 428px;
+            margin: 0 auto;
+        }
+
+        .match-content {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .match-label {
+            font-size: 15px;
+            color: var(--color-text-secondary);
+            margin-bottom: 10px;
+            filter: blur(8px);
+            transition: filter 0.6s ease, opacity 0.6s ease;
+        }
+
+        .match-name {
+            font-size: 32px;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            filter: blur(8px);
+            transition: filter 0.6s ease, opacity 0.6s ease;
+        }
+
+        .match-age {
+            font-size: 16px;
+            color: var(--color-text-secondary);
+            margin-top: 6px;
+            filter: blur(8px);
+            transition: filter 0.6s ease, opacity 0.6s ease;
+        }
+
+        .skeleton {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            transition: opacity 0.4s ease;
+        }
+
+        .skeleton.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .skeleton-label {
+            width: 120px;
+            height: 14px;
+            background: var(--color-skeleton);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .skeleton-name {
+            width: 100px;
+            height: 28px;
+            background: var(--color-skeleton);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .skeleton-age {
+            width: 80px;
+            height: 14px;
+            background: var(--color-skeleton);
+            border-radius: 4px;
+            margin-top: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .skeleton-label::after,
+        .skeleton-name::after,
+        .skeleton-age::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--color-skeleton-shine), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            100% {
+                left: 100%;
+            }
+        }
+
+        .match-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .match-info.visible {
+            opacity: 1;
+        }
+
+        .match-info.revealed .match-label,
+        .match-info.revealed .match-name,
+        .match-info.revealed .match-age {
+            filter: blur(0);
+        }
+
+        .fade-out .match-label,
+        .fade-out .match-name,
+        .fade-out .match-age {
+            filter: blur(12px);
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <main class="match-screen">
+        <div class="match-content">
+            <div class="skeleton" id="skeleton">
+                <div class="skeleton-label"></div>
+                <div class="skeleton-name"></div>
+                <div class="skeleton-age"></div>
+            </div>
+
+            <div class="match-info" id="matchInfo">
+                <p class="match-label">You're matched with</p>
+                <h1 class="match-name" id="matchName"></h1>
+                <p class="match-age" id="matchAge"></p>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        const skeleton = document.getElementById('skeleton');
+        const matchInfo = document.getElementById('matchInfo');
+        const matchName = document.getElementById('matchName');
+        const matchAge = document.getElementById('matchAge');
+    
+        async function findMatch() {
+            try {
+                // Check for existing match first
+                const { match: existingMatch } = await SparkAPI.matches.getCurrent();
+                
+                if (existingMatch) {
+                    showMatch(existingMatch.partner);
+                    localStorage.setItem('sparkCurrentMatch', JSON.stringify({
+                        id: existingMatch.id,
+                        name: existingMatch.partner.display_name,
+                        age: existingMatch.partner.age,
+                        revealTime: new Date(existingMatch.reveal_available_at).getTime()
+                    }));
+                    return;
+                }
+    
+                // Find new match
+                const { match, queued } = await SparkAPI.matches.findNew();
+    
+                if (queued) {
+                    matchName.textContent = 'Searching...';
+                    matchAge.textContent = 'We\'ll notify you when we find someone';
+                    skeleton.classList.add('hidden');
+                    matchInfo.classList.add('visible');
+                    setTimeout(() => matchInfo.classList.add('revealed'), 400);
+                    return;
+                }
+    
+                if (match) {
+                    showMatch(match.partner);
+                    localStorage.setItem('sparkCurrentMatch', JSON.stringify({
+                        id: match.id,
+                        name: match.partner.display_name,
+                        age: match.partner.age,
+                        revealTime: new Date(match.reveal_available_at).getTime()
+                    }));
+                }
+            } catch (error) {
+                console.error('Match error:', error);
+                matchName.textContent = 'Error';
+                matchAge.textContent = 'Please try again';
+                skeleton.classList.add('hidden');
+                matchInfo.classList.add('visible');
+            }
+        }
+    
+        function showMatch(partner) {
+            matchName.textContent = partner.display_name;
+            matchAge.textContent = `${partner.age} years old`;
+    
+            setTimeout(() => {
+                skeleton.classList.add('hidden');
+                matchInfo.classList.add('visible');
+            }, 1800);
+    
+            setTimeout(() => {
+                matchInfo.classList.add('revealed');
+            }, 2200);
+    
+            setTimeout(() => {
+                matchInfo.classList.add('fade-out');
+            }, 4500);
+    
+            setTimeout(() => {
+                window.location.href = 'chat.html';
+            }, 5100);
+        }
+    
+        // Check if logged in
+        if (!SparkAPI.auth.isLoggedIn()) {
+            window.location.href = 'index.html';
+        } else {
+            findMatch();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Spark">
+    <link rel="apple-touch-icon" href="blueocean.jpeg">
+    <title>Spark – Create Account</title>
+    <style>
+        @font-face {
+            font-family: 'CabinetGrotesk-Medium';
+            src: url('./fonts/CabinetGrotesk-Medium.woff2') format('woff2'),
+                 url('./fonts/CabinetGrotesk-Medium.woff') format('woff'),
+                 url('./fonts/CabinetGrotesk-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-display: swap;
+            font-style: normal;
+        }
+
+        :root {
+            --color-background: #000000;
+            --color-surface: #FFFFFF;
+            --color-text-primary: #FFFFFF;
+            --color-text-secondary: rgba(255, 255, 255, 0.65);
+            --color-input-bg: rgba(255, 255, 255, 0.08);
+            --color-input-border: rgba(255, 255, 255, 0.15);
+            --color-error: #FF453A;
+            --radius-pill: 28px;
+            --radius-input: 16px;
+            --font-heading: 'CabinetGrotesk-Medium', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: var(--font-heading);
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .signup-screen {
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 16px 24px;
+            max-width: 428px;
+            margin: 0 auto;
+            animation: blurFadeIn 0.6s ease-out forwards;
+            overflow: hidden;
+        }
+
+        .signup-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding-top: 48px;
+        }
+
+        .signup-title {
+            font-size: 28px;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .signup-subtitle {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-input {
+            width: 100%;
+            height: 52px;
+            padding: 0 20px;
+            background-color: var(--color-input-bg);
+            border: 1px solid var(--color-input-border);
+            border-radius: var(--radius-input);
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--color-text-primary);
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input::placeholder {
+            color: var(--color-text-secondary);
+        }
+
+        .form-input:focus {
+            border-color: var(--color-surface);
+        }
+
+        .form-input.error {
+            border-color: var(--color-error);
+        }
+
+        .form-error {
+            font-size: 12px;
+            color: var(--color-error);
+            margin-top: 8px;
+            display: none;
+        }
+
+        .form-error.visible {
+            display: block;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-top: 8px;
+        }
+
+        .signup-actions {
+            margin-top: auto;
+            padding-top: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            height: 52px;
+            background-color: var(--color-surface);
+            color: var(--color-background);
+            border: none;
+            border-radius: var(--radius-pill);
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn-primary:active {
+            opacity: 0.85;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .link-secondary {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .link-secondary:active {
+            color: var(--color-text-primary);
+        }
+
+        @keyframes blurFadeIn {
+            0% {
+                opacity: 0;
+                filter: blur(12px);
+            }
+            100% {
+                opacity: 1;
+                filter: blur(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="signup-screen">
+        <section class="signup-content">
+            <h1 class="signup-title">Create your account</h1>
+            <p class="signup-subtitle">Almost there. Just need a few more details.</p>
+
+            <form id="signupForm">
+                <div class="form-group">
+                    <input type="text" class="form-input" id="nameInput" placeholder="Display name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" class="form-input" id="emailInput" placeholder="Email" required>
+                    <p class="form-error" id="emailError">Please enter a valid email address.</p>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-input" id="passwordInput" placeholder="Password" required>
+                    <p class="form-hint">At least 8 characters.</p>
+                    <p class="form-error" id="passwordError">Password must be at least 8 characters.</p>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-input" id="confirmPasswordInput" placeholder="Confirm password" required>
+                    <p class="form-error" id="confirmError">Passwords do not match.</p>
+                </div>
+            </form>
+
+            <div class="signup-actions">
+                <button type="button" class="btn-primary" id="createBtn" disabled>Create Account</button>
+                <a href="login.html" class="link-secondary">Already have an account?</a>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const nameInput = document.getElementById('nameInput');
+        const emailInput = document.getElementById('emailInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+        const createBtn = document.getElementById('createBtn');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+        const confirmError = document.getElementById('confirmError');
+
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function validateForm() {
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            const isNameValid = name.length > 0;
+            const isEmailValid = validateEmail(email);
+            const isPasswordValid = password.length >= 8;
+            const isConfirmValid = password === confirmPassword && confirmPassword.length > 0;
+
+            createBtn.disabled = !(isNameValid && isEmailValid && isPasswordValid && isConfirmValid);
+        }
+
+        function showError(input, error) {
+            input.classList.add('error');
+            error.classList.add('visible');
+        }
+
+        function hideError(input, error) {
+            input.classList.remove('error');
+            error.classList.remove('visible');
+        }
+
+        nameInput.addEventListener('input', validateForm);
+
+        emailInput.addEventListener('input', () => {
+            hideError(emailInput, emailError);
+            validateForm();
+        });
+
+        emailInput.addEventListener('blur', () => {
+            if (emailInput.value.trim() && !validateEmail(emailInput.value.trim())) {
+                showError(emailInput, emailError);
+            }
+        });
+
+        passwordInput.addEventListener('input', () => {
+            hideError(passwordInput, passwordError);
+            validateForm();
+        });
+
+        passwordInput.addEventListener('blur', () => {
+            if (passwordInput.value && passwordInput.value.length < 8) {
+                showError(passwordInput, passwordError);
+            }
+        });
+
+        confirmPasswordInput.addEventListener('input', () => {
+            hideError(confirmPasswordInput, confirmError);
+            validateForm();
+        });
+
+        confirmPasswordInput.addEventListener('blur', () => {
+            if (confirmPasswordInput.value && confirmPasswordInput.value !== passwordInput.value) {
+                showError(confirmPasswordInput, confirmError);
+            }
+        });
+
+        // Replace old localStorage handler with API call
+        createBtn.addEventListener('click', async () => {
+            if (createBtn.disabled) return;
+            
+            createBtn.disabled = true;
+            createBtn.textContent = 'Creating account...';
+    
+            // Get onboarding data
+            const onboardingData = JSON.parse(localStorage.getItem('sparkUserData') || '{}');
+    
+            const userData = {
+    email: document.getElementById('email').value,
+    password: document.getElementById('password').value,
+    display_name: document.getElementById('displayName').value,
+    age: onboardingData.age,
+    gender: onboardingData.gender,
+    seeking: onboardingData.seeking,
+    location: onboardingData.location
+};
+    
+            try {
+                await SparkAPI.auth.signup(userData);
+                
+                // Upload photos if any (optional - don't fail signup if this fails)
+                if (onboardingData.photos && onboardingData.photos.length > 0) {
+                    try {
+                        for (let i = 0; i < onboardingData.photos.length; i++) {
+                            // Skip base64 photos for now - need to upload to Supabase Storage first
+                            // Photos will be added later when we implement file upload
+                            console.log('Photo upload skipped - will implement Supabase Storage upload');
+                        }
+                    } catch (photoError) {
+                        console.warn('Photo upload failed:', photoError);
+                        // Continue anyway - photos can be added later
+                    }
+                }
+                
+                window.location.href = 'plan.html';
+            } catch (error) {
+                alert(error.message || 'Failed to create account');
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Account';
+            }
+        });
+    </script>
+    <script src="js/api.js"></script>
+    </script>
+</body>
+</html>

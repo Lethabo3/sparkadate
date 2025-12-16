@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Spark">
+    <link rel="apple-touch-icon" href="blueocean.jpeg">
+    <title>Spark</title>
+    <style>
+        @font-face {
+            font-family: 'CabinetGrotesk-Medium';
+            src: url('./fonts/CabinetGrotesk-Medium.woff2') format('woff2'),
+                 url('./fonts/CabinetGrotesk-Medium.woff') format('woff'),
+                 url('./fonts/CabinetGrotesk-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-display: swap;
+            font-style: normal;
+        }
+
+        :root {
+            --color-background: #000000;
+            --color-surface: #FFFFFF;
+            --color-text-primary: #FFFFFF;
+            --color-text-secondary: rgba(255, 255, 255, 0.65);
+            --radius-pill: 28px;
+            --font-heading: 'CabinetGrotesk-Medium', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-heading);
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            min-height: 100dvh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .onboarding-screen {
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 120px 16px 48px;
+            max-width: 428px;
+            margin: 0 auto;
+            animation: blurFadeIn 0.6s ease-out forwards;
+        }
+
+        .onboarding-header {
+            text-align: center;
+        }
+
+        .wordmark {
+            font-size: 48px;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        .tagline {
+            margin-top: 24px;
+            font-size: 17px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+
+        .onboarding-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--color-surface);
+            color: var(--color-background);
+            border: none;
+            border-radius: var(--radius-pill);
+            font-family: var(--font-heading);
+            font-size: 17px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn-primary:active {
+            opacity: 0.85;
+        }
+
+        .link-secondary {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .link-secondary:active {
+            color: var(--color-text-primary);
+        }
+
+        @keyframes blurFadeIn {
+            0% {
+                opacity: 0;
+                filter: blur(12px);
+            }
+            100% {
+                opacity: 1;
+                filter: blur(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="onboarding-screen">
+        <header class="onboarding-header">
+            <h1 class="wordmark">Spark</h1>
+            <p class="tagline">Meet someone before you see them.</p>
+        </header>
+        
+        <nav class="onboarding-actions">
+            <a href="onboarding1.html" class="btn-primary">Get Started</a>
+            <a href="login.html" class="link-secondary">I already have an account</a>
+        </nav>
+    </main>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+npm-debug.log*
+
+# Optional: Exclude large font directories if not needed in repo
+# CabinetGrotesk_Complete/
+

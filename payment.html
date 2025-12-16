@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Spark">
+    <link rel="apple-touch-icon" href="blueocean.jpeg">
+    <title>Spark – Payment</title>
+    <style>
+        @font-face {
+            font-family: 'CabinetGrotesk-Medium';
+            src: url('./fonts/CabinetGrotesk-Medium.woff2') format('woff2'),
+                 url('./fonts/CabinetGrotesk-Medium.woff') format('woff'),
+                 url('./fonts/CabinetGrotesk-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-display: swap;
+            font-style: normal;
+        }
+
+        :root {
+            --color-background: #000000;
+            --color-surface: #FFFFFF;
+            --color-text-primary: #FFFFFF;
+            --color-text-secondary: rgba(255, 255, 255, 0.65);
+            --color-input-bg: rgba(255, 255, 255, 0.08);
+            --color-input-border: rgba(255, 255, 255, 0.15);
+            --color-card-bg: rgba(255, 255, 255, 0.06);
+            --color-card-border: rgba(255, 255, 255, 0.12);
+            --radius-pill: 28px;
+            --radius-input: 16px;
+            --radius-card: 20px;
+            --font-heading: 'CabinetGrotesk-Medium', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: var(--font-heading);
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .payment-screen {
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 16px 24px;
+            max-width: 428px;
+            margin: 0 auto;
+            animation: blurFadeIn 0.6s ease-out forwards;
+            overflow: hidden;
+        }
+
+        .payment-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding-top: 32px;
+        }
+
+        .payment-title {
+            font-size: 28px;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .payment-subtitle {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .order-summary {
+            background-color: var(--color-card-bg);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-card);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .order-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+        }
+
+        .order-row.total {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--color-card-border);
+            font-size: 17px;
+        }
+
+        .order-label {
+            color: var(--color-text-secondary);
+        }
+
+        .order-row.total .order-label {
+            color: var(--color-text-primary);
+        }
+
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .payment-method {
+            width: 100%;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: var(--color-surface);
+            border: none;
+            border-radius: var(--radius-pill);
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--color-background);
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .payment-method:active {
+            opacity: 0.85;
+        }
+
+        .payment-method.apple-pay {
+            background-color: var(--color-surface);
+        }
+
+        .payment-method.apple-pay svg {
+            height: 20px;
+            width: auto;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background-color: var(--color-card-border);
+        }
+
+        .divider-text {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .card-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-input {
+            width: 100%;
+            height: 52px;
+            padding: 0 20px;
+            background-color: var(--color-input-bg);
+            border: 1px solid var(--color-input-border);
+            border-radius: var(--radius-input);
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--color-text-primary);
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input::placeholder {
+            color: var(--color-text-secondary);
+        }
+
+        .form-input:focus {
+            border-color: var(--color-surface);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row .form-input {
+            flex: 1;
+        }
+
+        .payment-actions {
+            margin-top: auto;
+            padding-top: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            height: 52px;
+            background-color: var(--color-surface);
+            color: var(--color-background);
+            border: none;
+            border-radius: var(--radius-pill);
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn-primary:active {
+            opacity: 0.85;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .link-back {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .link-back:active {
+            color: var(--color-text-primary);
+        }
+
+        @keyframes blurFadeIn {
+            0% {
+                opacity: 0;
+                filter: blur(12px);
+            }
+            100% {
+                opacity: 1;
+                filter: blur(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="payment-screen">
+        <section class="payment-content">
+            <h1 class="payment-title">Payment</h1>
+            <p class="payment-subtitle">Subscribe to Spark Pro</p>
+
+            <div class="order-summary">
+                <div class="order-row">
+                    <span class="order-label">Spark Pro</span>
+                    <span>$20.00</span>
+                </div>
+                <div class="order-row total">
+                    <span class="order-label">Total</span>
+                    <span>$20.00/mo</span>
+                </div>
+            </div>
+
+            <div class="payment-methods">
+                <button type="button" class="payment-method apple-pay" id="applePayBtn">
+                    <svg viewBox="0 0 50 20" fill="var(--color-background)">
+                        <path d="M9.43.28C8.75 1.08 7.7 1.7 6.65 1.62c-.12-1.05.38-2.17 1-2.86C8.35-1.94 9.5-2.5 10.43-2.56c.1 1.1-.32 2.18-.99 2.84zM10.42 1.75c-1.15-.07-2.13.65-2.68.65-.55 0-1.38-.62-2.3-.6-1.18.02-2.28.69-2.88 1.75-1.24 2.13-.32 5.3.87 7.04.59.86 1.29 1.81 2.2 1.78.89-.04 1.22-.57 2.29-.57 1.07 0 1.36.57 2.29.55.95-.02 1.54-.86 2.13-1.72.67-.98.94-1.93.96-1.98-.02-.01-1.84-.71-1.86-2.82-.02-1.76 1.44-2.6 1.5-2.65-.82-1.21-2.1-1.35-2.54-1.38l.02-.05zM18.71 12.46V.57h3.45c1.86 0 3.15 1.27 3.15 3.12 0 1.86-1.32 3.15-3.2 3.15h-2.24v5.62h-1.16zm1.16-6.6h1.86c1.3 0 2.03-.7 2.03-1.92 0-1.22-.73-1.92-2.02-1.92h-1.87v3.84zm6.35 5.27c0-1.11.85-1.79 2.36-1.88l1.74-.1v-.5c0-.7-.47-1.12-1.27-1.12-.75 0-1.22.36-1.33.92h-1.07c.06-1.09 1.01-1.9 2.44-1.9 1.44 0 2.36.78 2.36 2v4.35h-1.08v-1.04h-.03c-.32.7-1.02 1.14-1.84 1.14-1.15 0-2.28-.72-2.28-1.87zm4.1-.56v-.5l-1.57.1c-.78.05-1.22.4-1.22.96 0 .55.46.92 1.14.92.9 0 1.65-.62 1.65-1.48zm2.68 3.69v-.96c.09.02.3.02.4.02.58 0 .89-.24 1.08-.87l.12-.37-2.18-6.02h1.22l1.58 5.02h.02l1.58-5.02h1.19l-2.26 6.33c-.52 1.47-1.12 1.94-2.38 1.94-.1 0-.29-.01-.37-.02v-.05z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="divider">
+                <span class="divider-line"></span>
+                <span class="divider-text">or pay with card</span>
+                <span class="divider-line"></span>
+            </div>
+
+            <form class="card-form" id="cardForm">
+                <input type="text" class="form-input" id="cardNumber" placeholder="Card number" inputmode="numeric">
+                <div class="form-row">
+                    <input type="text" class="form-input" id="expiry" placeholder="MM / YY" inputmode="numeric">
+                    <input type="text" class="form-input" id="cvc" placeholder="CVC" inputmode="numeric">
+                </div>
+            </form>
+
+            <div class="payment-actions">
+                <button type="button" class="btn-primary" id="payBtn" disabled>Pay $20.00</button>
+                <a href="plan.html" class="link-back">Go back</a>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const cardNumber = document.getElementById('cardNumber');
+        const expiry = document.getElementById('expiry');
+        const cvc = document.getElementById('cvc');
+        const payBtn = document.getElementById('payBtn');
+        const applePayBtn = document.getElementById('applePayBtn');
+
+        function formatCardNumber(value) {
+            return value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+        }
+
+        function formatExpiry(value) {
+            const cleaned = value.replace(/\D/g, '');
+            if (cleaned.length >= 2) {
+                return cleaned.slice(0, 2) + ' / ' + cleaned.slice(2, 4);
+            }
+            return cleaned;
+        }
+
+        function validateForm() {
+            const cardValid = cardNumber.value.replace(/\s/g, '').length === 16;
+            const expiryValid = expiry.value.replace(/\D/g, '').length === 4;
+            const cvcValid = cvc.value.length >= 3;
+            payBtn.disabled = !(cardValid && expiryValid && cvcValid);
+        }
+
+        cardNumber.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '').slice(0, 16);
+            e.target.value = formatCardNumber(value);
+            validateForm();
+        });
+
+        expiry.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '').slice(0, 4);
+            e.target.value = formatExpiry(value);
+            validateForm();
+        });
+
+        cvc.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+            validateForm();
+        });
+
+        payBtn.addEventListener('click', () => {
+            const userData = JSON.parse(localStorage.getItem('sparkUserData') || '{}');
+            userData.plan = 'pro';
+            localStorage.setItem('sparkUserData', JSON.stringify(userData));
+            window.location.href = 'match.html';
+        });
+
+        applePayBtn.addEventListener('click', () => {
+            const userData = JSON.parse(localStorage.getItem('sparkUserData') || '{}');
+            userData.plan = 'pro';
+            localStorage.setItem('sparkUserData', JSON.stringify(userData));
+            window.location.href = 'match.html';
+        });
+    </script>
+</body>
+</html>

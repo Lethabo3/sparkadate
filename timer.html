@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Spark">
+    <link rel="apple-touch-icon" href="blueocean.jpeg">
+    <title>Spark – Timer</title>
+    <style>
+        @font-face {
+            font-family: 'CabinetGrotesk-Medium';
+            src: url('./fonts/CabinetGrotesk-Medium.woff2') format('woff2'),
+                 url('./fonts/CabinetGrotesk-Medium.woff') format('woff'),
+                 url('./fonts/CabinetGrotesk-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-display: swap;
+            font-style: normal;
+        }
+
+        :root {
+            --color-background: #000000;
+            --color-surface: #FFFFFF;
+            --color-text-primary: #FFFFFF;
+            --color-text-secondary: rgba(255, 255, 255, 0.65);
+            --font-heading: 'CabinetGrotesk-Medium', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: var(--font-heading);
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .timer-screen {
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            max-width: 428px;
+            margin: 0 auto;
+            padding: 16px;
+            animation: blurFadeIn 0.6s ease-out forwards;
+        }
+
+        .timer-label {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .timer-value {
+            font-size: 48px;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        .timer-sublabel {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            margin-top: 16px;
+        }
+
+        @keyframes blurFadeIn {
+            0% {
+                opacity: 0;
+                filter: blur(12px);
+            }
+            100% {
+                opacity: 1;
+                filter: blur(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="timer-screen">
+        <p class="timer-label">Reveal available in</p>
+        <h1 class="timer-value" id="timerValue">--:--:--</h1>
+        <p class="timer-sublabel" id="timerSublabel"></p>
+    </main>
+
+    <script>
+        const timerValue = document.getElementById('timerValue');
+        const timerSublabel = document.getElementById('timerSublabel');
+
+        const matchData = JSON.parse(localStorage.getItem('sparkCurrentMatch') || '{}');
+
+        function updateTimer() {
+            const now = Date.now();
+            const remaining = matchData.revealTime - now;
+
+            if (remaining <= 0) {
+                timerValue.textContent = 'Ready';
+                timerSublabel.textContent = 'You can now request a reveal';
+                return;
+            }
+
+            const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+            if (days > 0) {
+                timerValue.textContent = `${days}d ${hours}h ${minutes}m`;
+                timerSublabel.textContent = `${days} day${days > 1 ? 's' : ''} remaining`;
+            } else {
+                timerValue.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                timerSublabel.textContent = 'Keep chatting';
+            }
+        }
+
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    </script>
+</body>
+</html>
