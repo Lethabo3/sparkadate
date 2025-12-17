@@ -161,31 +161,36 @@
         }
 
         .success-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100dvh;
             display: none;
-            padding: 20px;
-            background-color: var(--color-success);
-            border-radius: var(--radius-input);
-            text-align: center;
-            margin-top: 24px;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 1000;
         }
 
         .success-message.visible {
-            display: block;
-            animation: slideIn 0.4s ease-out;
+            display: flex;
+            animation: blurFadeIn 0.6s ease-out forwards;
         }
 
         .success-message p {
-            font-size: 15px;
+            font-size: 20px;
+            font-weight: 500;
             color: var(--color-text-primary);
-        }
-
-        .waitlist-footer {
             text-align: center;
+            line-height: 1.5;
+            max-width: 400px;
         }
 
-        .waitlist-count {
-            font-size: 14px;
-            color: var(--color-text-secondary);
+        .content-blur {
+            filter: blur(12px);
+            opacity: 0.3;
+            transition: filter 0.6s ease-out, opacity 0.6s ease-out;
         }
 
         @keyframes blurFadeIn {
@@ -196,17 +201,6 @@
             100% {
                 opacity: 1;
                 filter: blur(0);
-            }
-        }
-
-        @keyframes slideIn {
-            0% {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
             }
         }
     </style>
@@ -231,7 +225,6 @@
                 </div>
                 <div class="waitlist-actions">
                     <button type="submit" class="btn-primary" id="submitBtn">Join waitlist</button>
-                    <p class="waitlist-count" id="waitlistCount">Join <span id="count">487</span> others waiting</p>
                 </div>
             </form>
 
@@ -242,42 +235,62 @@
     </main>
 
     <script>
+        const API_BASE_URL = 'http://localhost:3000/api'; // Update this to your production URL
+
         const form = document.getElementById('waitlistForm');
         const submitBtn = document.getElementById('submitBtn');
         const nameInput = document.getElementById('nameInput');
         const emailInput = document.getElementById('emailInput');
         const successMessage = document.getElementById('successMessage');
-        const countElement = document.getElementById('count');
+        const waitlistScreen = document.querySelector('.waitlist-screen');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const fullName = nameInput.value.trim();
+            const email = emailInput.value.trim();
+
+            if (!fullName || !email) {
+                alert('Please fill in all fields');
+                return;
+            }
 
             submitBtn.disabled = true;
             submitBtn.textContent = 'Joining...';
 
             try {
-                // Simulate API call - replace with your actual endpoint
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Store in localStorage or send to your backend
-                const waitlistData = {
-                    name: nameInput.value,
-                    email: emailInput.value,
-                    timestamp: new Date().toISOString()
-                };
-                
-                console.log('Waitlist signup:', waitlistData);
-                
-                // Show success message
-                form.style.display = 'none';
-                successMessage.classList.add('visible');
-                
-                // Update count
-                const currentCount = parseInt(countElement.textContent);
-                countElement.textContent = currentCount + 1;
+                const response = await fetch(`${API_BASE_URL}/waitlist/join`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        full_name: fullName,
+                        email: email
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to join waitlist');
+                }
+
+                // Blur the main content
+                waitlistScreen.classList.add('content-blur');
+
+                // Show success message with blur fade-in
+                setTimeout(() => {
+                    successMessage.classList.add('visible');
+                }, 100);
+
+                // Optional: Store referral code in localStorage
+                if (data.waitlistEntry && data.waitlistEntry.referral_code) {
+                    localStorage.setItem('sparkReferralCode', data.waitlistEntry.referral_code);
+                }
 
             } catch (error) {
-                alert('Something went wrong. Please try again.');
+                alert(error.message || 'Something went wrong. Please try again.');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Join waitlist';
             }
