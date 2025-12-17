@@ -5,11 +5,13 @@ import authRoutes from './routes/auth.js';
 import usersRoutes from './routes/users.js';
 import matchesRoutes from './routes/matches.js';
 import messagesRoutes from './routes/messages.js';
+import waitlistRoutes from './routes/waitlist.js';
 
 dotenv.config();
 
 const requiredEnvVars = ['SUPABASE_URL', 'SUPABASE_SERVICE_KEY', 'JWT_SECRET', 'GEMINI_API_KEY'];
 const missingVars = requiredEnvVars.filter(v => !process.env[v]);
+
 if (missingVars.length > 0) {
     console.error('Missing environment variables:', missingVars.join(', '));
     console.error('Please check your .env file');
@@ -20,9 +22,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-    origin: ['https://lethabo3.github.io', 'http://localhost:3000'],
+    origin: ['https://lethabo3.github.io', 'http://localhost:3000', 'http://sparkadate.online'],
     credentials: true
 }));
+
 app.use(express.json());
 
 app.get('/api', (req, res) => {
@@ -51,6 +54,11 @@ app.get('/api', (req, res) => {
                 send: 'POST /api/messages/:matchId',
                 get: 'GET /api/messages/:matchId',
                 analyze: 'POST /api/messages/:matchId/analyze'
+            },
+            waitlist: {
+                join: 'POST /api/waitlist/join',
+                count: 'GET /api/waitlist/count',
+                position: 'POST /api/waitlist/position'
             }
         }
     });
@@ -68,6 +76,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/matches', matchesRoutes);
 app.use('/api/messages', messagesRoutes);
+app.use('/api/waitlist', waitlistRoutes);
 
 const server = app.listen(PORT, '0.0.0.0', () => {
     console.log('========================================');
