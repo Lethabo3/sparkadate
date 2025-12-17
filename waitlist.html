@@ -235,66 +235,74 @@
     </main>
 
     <script>
-        const API_BASE_URL = 'http://localhost:3000/api'; // Update this to your production URL
+    const API_BASE_URL = 'http://localhost:3000/api'; // Update this to your production URL
 
-        const form = document.getElementById('waitlistForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const nameInput = document.getElementById('nameInput');
-        const emailInput = document.getElementById('emailInput');
-        const successMessage = document.getElementById('successMessage');
-        const waitlistScreen = document.querySelector('.waitlist-screen');
+    const form = document.getElementById('waitlistForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const nameInput = document.getElementById('nameInput');
+    const emailInput = document.getElementById('emailInput');
+    const successMessage = document.getElementById('successMessage');
+    const waitlistScreen = document.querySelector('.waitlist-screen');
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-            const fullName = nameInput.value.trim();
-            const email = emailInput.value.trim();
+        const fullName = nameInput.value.trim();
+        const email = emailInput.value.trim();
 
-            if (!fullName || !email) {
-                alert('Please fill in all fields');
-                return;
+        if (!fullName || !email) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Joining...';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/waitlist/join`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    full_name: fullName,
+                    email: email
+                })
+            });
+
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Server returned invalid response. Please check your backend is running.');
             }
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Joining...';
+            const data = await response.json();
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/waitlist/join`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        full_name: fullName,
-                        email: email
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to join waitlist');
-                }
-
-                // Blur the main content
-                waitlistScreen.classList.add('content-blur');
-
-                // Show success message with blur fade-in
-                setTimeout(() => {
-                    successMessage.classList.add('visible');
-                }, 100);
-
-                // Optional: Store referral code in localStorage
-                if (data.waitlistEntry && data.waitlistEntry.referral_code) {
-                    localStorage.setItem('sparkReferralCode', data.waitlistEntry.referral_code);
-                }
-
-            } catch (error) {
-                alert(error.message || 'Something went wrong. Please try again.');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Join waitlist';
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to join waitlist');
             }
-        });
-    </script>
+
+            // Blur the main content
+            waitlistScreen.classList.add('content-blur');
+
+            // Show success message with blur fade-in
+            setTimeout(() => {
+                successMessage.classList.add('visible');
+            }, 100);
+
+            // Optional: Store referral code in localStorage
+            if (data.waitlistEntry && data.waitlistEntry.referral_code) {
+                localStorage.setItem('sparkReferralCode', data.waitlistEntry.referral_code);
+            }
+
+        } catch (error) {
+            console.error('Waitlist error:', error);
+            alert(error.message || 'Something went wrong. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Join waitlist';
+        }
+    });
+</script>
 </body>
 </html>
+
