@@ -330,18 +330,20 @@
         })
 
         continueBtn.addEventListener('click', async () => {
-            if (selectedPlan === 'pro') {
-                const { data: { user } } = await supabase.auth.getUser()
-                if (user) {
-                    const checkoutUrl = `https://spark.lemonsqueezy.com/checkout/buy/1157917?checkout[custom][user_id]=${user.id}`
-                    window.location.href = checkoutUrl
-                } else {
-                    window.location.href = 'login.html'
-                }
-            } else {
-                window.location.href = 'chat.html'
-            }
-        })
+    if (selectedPlan === 'pro') {
+        const { data, error } = await supabase.auth.getUser()
+        alert('User: ' + JSON.stringify(data?.user?.id) + ' Error: ' + JSON.stringify(error))
+        
+        if (data?.user) {
+            const checkoutUrl = `https://spark.lemonsqueezy.com/checkout/buy/1157917?checkout[custom][user_id]=${data.user.id}`
+            window.location.href = checkoutUrl
+        } else {
+            window.location.href = 'login.html'
+        }
+    } else {
+        window.location.href = 'chat.html'
+    }
+})
     </script>
 </body>
 </html>
