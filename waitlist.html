@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Spark">
     <link rel="apple-touch-icon" href="blueocean.jpeg">
-    <title>Spark – Join the Waitlist</title>
+    <title>Spark – You're In</title>
     <style>
         @font-face {
             font-family: 'CabinetGrotesk-Medium';
@@ -28,7 +28,6 @@
             --color-text-secondary: rgba(255, 255, 255, 0.65);
             --color-input-bg: rgba(255, 255, 255, 0.08);
             --color-input-border: rgba(255, 255, 255, 0.15);
-            --color-success: rgba(34, 197, 94, 0.2);
             --radius-pill: 28px;
             --radius-input: 16px;
             --font-heading: 'CabinetGrotesk-Medium', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -48,7 +47,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        .waitlist-screen {
+        .confirmation-screen {
             min-height: 100dvh;
             display: flex;
             flex-direction: column;
@@ -58,7 +57,7 @@
             animation: blurFadeIn 0.6s ease-out forwards;
         }
 
-        .waitlist-header {
+        .confirmation-header {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -66,27 +65,27 @@
             margin-bottom: 32px;
         }
 
-        .waitlist-logo {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    object-fit: cover;
-}
+        .confirmation-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
 
-        .waitlist-brand {
+        .confirmation-brand {
             font-size: 20px;
             font-weight: 500;
             letter-spacing: -0.01em;
         }
 
-        .waitlist-content {
+        .confirmation-content {
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
-        .waitlist-title {
+        .confirmation-message {
             font-size: 32px;
             font-weight: 500;
             letter-spacing: -0.02em;
@@ -94,108 +93,66 @@
             text-align: center;
         }
 
-        .waitlist-subtitle {
+        .confirmation-subtitle {
             font-size: 15px;
             font-weight: 500;
             color: var(--color-text-secondary);
-            margin-bottom: 40px;
+            margin-bottom: 48px;
             text-align: center;
         }
 
-        .form-group {
-            margin-bottom: 16px;
+        .referral-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+        .referral-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            margin-bottom: 12px;
+            text-align: center;
         }
 
-        .form-input {
-            width: 100%;
-            height: 56px;
-            padding: 0 20px;
+        .referral-link-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             background-color: var(--color-input-bg);
             border: 1px solid var(--color-input-border);
             border-radius: var(--radius-input);
-            font-family: var(--font-heading);
-            font-size: 16px;
+            padding: 16px 20px;
+        }
+
+        .referral-link {
+            flex: 1;
+            font-size: 14px;
             font-weight: 500;
             color: var(--color-text-primary);
-            outline: none;
-            transition: border-color 0.2s ease;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .form-input::placeholder {
-            color: var(--color-text-secondary);
-        }
-
-        .form-input:focus {
-            border-color: var(--color-surface);
-        }
-
-        .waitlist-actions {
-            margin-top: auto;
-            padding-top: 32px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .btn-primary {
-            width: 100%;
-            height: 56px;
-            background-color: var(--color-surface);
-            color: var(--color-background);
+        .btn-copy {
+            background: none;
             border: none;
-            border-radius: var(--radius-pill);
-            font-family: var(--font-heading);
-            font-size: 17px;
-            font-weight: 500;
+            color: var(--color-text-secondary);
             cursor: pointer;
-            transition: opacity 0.2s ease;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
         }
 
-        .btn-primary:active {
-            opacity: 0.85;
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .success-message {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100dvh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    z-index: 1000;
-    background-color: var(--color-background);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
-}
-
-.success-message.visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-        .success-message p {
-            font-size: 20px;
-            font-weight: 500;
+        .btn-copy:active {
             color: var(--color-text-primary);
-            text-align: center;
-            line-height: 1.5;
-            max-width: 400px;
         }
 
-        .content-blur {
-            filter: blur(12px);
-            opacity: 0.3;
-            transition: filter 0.6s ease-out, opacity 0.6s ease-out;
+        .btn-copy.copied {
+            color: var(--color-text-primary);
         }
 
         @keyframes blurFadeIn {
@@ -211,94 +168,53 @@
     </style>
 </head>
 <body>
-    <main class="waitlist-screen">
-        <header class="waitlist-header">
-            <img src="blueocean.jpeg" alt="Spark" class="waitlist-logo">
-            <span class="waitlist-brand">Spark</span>
+    <main class="confirmation-screen">
+        <header class="confirmation-header">
+            <img src="blueocean.jpeg" alt="Spark" class="confirmation-logo">
+            <span class="confirmation-brand">Spark</span>
         </header>
 
-        <section class="waitlist-content">
-            <h1 class="waitlist-title">Join the spark revolution</h1>
-            <p class="waitlist-subtitle">Be among the first to experience blind dating where personality meets before looks. Sign up for early access.</p>
+        <section class="confirmation-content">
+            <h1 class="confirmation-message">You're on the list!</h1>
 
-            <form id="waitlistForm">
-                <div class="form-group">
-                    <input type="text" class="form-input" id="nameInput" placeholder="Full name" required>
+            <div class="referral-section">
+                <p class="referral-label">Invite a friend who'd like a date</p>
+                <div class="referral-link-container">
+                    <span class="referral-link" id="referralLink"></span>
+                    <button class="btn-copy" id="copyBtn" aria-label="Copy link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
                 </div>
-                <div class="form-group">
-                    <input type="email" class="form-input" id="emailInput" placeholder="Email address" required>
-                </div>
-                <div class="waitlist-actions">
-                    <button type="submit" class="btn-primary" id="submitBtn">Join waitlist</button>
-                </div>
-            </form>
-
+            </div>
         </section>
     </main>
 
-    <div class="success-message" id="successMessage">
-        <p>You're on the list! We'll notify you when Spark launches.</p>
-    </div>
-
     <script>
-        const API_BASE_URL = 'http://localhost:3000/api'; // Update this to your production URL
+const BASE_URL = 'https://lethabo3.github.io/sparkadate/waitlist.html';
 
-        const form = document.getElementById('waitlistForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const nameInput = document.getElementById('nameInput');
-        const emailInput = document.getElementById('emailInput');
-        const waitlistScreen = document.querySelector('.waitlist-screen');
+const urlParams = new URLSearchParams(window.location.search);
+const referralCode = urlParams.get('ref');
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+const referralLink = document.getElementById('referralLink');
+const copyBtn = document.getElementById('copyBtn');
 
-            const fullName = nameInput.value.trim();
-            const email = emailInput.value.trim();
+const fullReferralLink = `${BASE_URL}?ref=${referralCode}`;
+referralLink.textContent = fullReferralLink;
 
-            if (!fullName || !email) {
-                alert('Please fill in all fields');
-                return;
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Joining...';
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/waitlist/join`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        full_name: fullName,
-                        email: email
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to join waitlist');
-                }
-
-// Start blurring the main content
-waitlistScreen.classList.add('content-blur');
-
-// After blur completes, redirect to confirmation page
-setTimeout(() => {
-    window.location.href = 'confirmation.html';
-}, 600);
-                // Optional: Store referral code in localStorage
-                if (data.waitlistEntry && data.waitlistEntry.referral_code) {
-                    localStorage.setItem('sparkReferralCode', data.waitlistEntry.referral_code);
-                }
-
-            } catch (error) {
-                alert(error.message || 'Something went wrong. Please try again.');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Join waitlist';
-            }
-        });
+copyBtn.addEventListener('click', async () => {
+    try {
+        await navigator.clipboard.writeText(fullReferralLink);
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+            copyBtn.classList.remove('copied');
+        }, 2000);
+    } catch (err) {
+        console.error('Failed to copy:', err);
+    }
+});
     </script>
 </body>
 </html>
