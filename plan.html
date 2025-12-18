@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Spark">
     <link rel="apple-touch-icon" href="blueocean.jpeg">
-    <title>Spark – Choose Plan</title>
+    <title>Spark – Welcome to Pro</title>
     <style>
         @font-face {
             font-family: 'CabinetGrotesk-Medium';
@@ -28,7 +28,6 @@
             --color-text-secondary: rgba(255, 255, 255, 0.65);
             --color-card-bg: rgba(255, 255, 255, 0.06);
             --color-card-border: rgba(255, 255, 255, 0.12);
-            --color-card-selected: rgba(255, 255, 255, 0.12);
             --radius-pill: 28px;
             --radius-card: 20px;
             --font-heading: 'CabinetGrotesk-Medium', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -52,141 +51,79 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        .plan-screen {
+        .success-screen {
             height: 100dvh;
             display: flex;
             flex-direction: column;
-            padding: 16px 16px 24px;
+            padding: 24px 16px 32px;
             max-width: 428px;
             margin: 0 auto;
-            animation: blurFadeIn 0.6s ease-out forwards;
+            animation: blurIn 0.6s ease-out forwards;
             overflow: hidden;
         }
 
-        .plan-content {
+        .success-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .success-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .success-brand {
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+
+        .success-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding-top: 32px;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 8px;
         }
 
-        .plan-title {
-            font-size: 28px;
+        .success-title {
+            font-size: 32px;
             font-weight: 500;
             letter-spacing: -0.02em;
-            margin-bottom: 8px;
-        }
-
-        .plan-subtitle {
-            font-size: 14px;
-            color: var(--color-text-secondary);
-            margin-bottom: 24px;
-        }
-
-        .plan-cards {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .plan-card {
-            background-color: var(--color-card-bg);
-            border: 1px solid var(--color-card-border);
-            border-radius: var(--radius-card);
-            padding: 20px;
-            cursor: pointer;
-            transition: border-color 0.2s ease, background-color 0.2s ease;
-        }
-
-        .plan-card:hover {
-            border-color: var(--color-text-secondary);
-        }
-
-        .plan-card.selected {
-            background-color: var(--color-card-selected);
-            border-color: var(--color-surface);
-        }
-
-        .plan-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 12px;
+            animation: fadeUp 0.5s ease-out 0.3s both;
         }
 
-        .plan-name {
-            font-size: 18px;
-            font-weight: 500;
-        }
-
-        .plan-price {
-            font-size: 18px;
-            font-weight: 500;
-        }
-
-        .plan-price span {
-            font-size: 13px;
+        .success-subtitle {
+            font-size: 15px;
             color: var(--color-text-secondary);
+            line-height: 1.5;
+            max-width: 300px;
+            animation: fadeUp 0.5s ease-out 0.4s both;
         }
 
-        .plan-features {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .plan-feature {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            color: var(--color-text-secondary);
-        }
-
-        .plan-feature svg {
-            width: 16px;
-            height: 16px;
-            stroke: var(--color-surface);
-            flex-shrink: 0;
-        }
-
-        .plan-feature.disabled svg {
-            stroke: var(--color-text-secondary);
-            opacity: 0.4;
-        }
-
-        .plan-feature.disabled {
-            opacity: 0.5;
-        }
-
-        .plan-badge {
-            display: inline-block;
-            font-size: 11px;
-            color: var(--color-background);
-            background-color: var(--color-surface);
-            padding: 4px 8px;
-            border-radius: 8px;
-            margin-left: 8px;
-        }
-
-        .plan-actions {
+        .success-actions {
             margin-top: auto;
-            padding-top: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
+            width: 100%;
+            padding-top: 24px;
+            animation: fadeUp 0.5s ease-out 0.5s both;
         }
 
         .btn-primary {
             width: 100%;
-            height: 52px;
+            height: 56px;
             background-color: var(--color-surface);
             color: var(--color-background);
             border: none;
             border-radius: var(--radius-pill);
             font-family: var(--font-heading);
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 500;
             cursor: pointer;
             transition: opacity 0.2s ease;
@@ -196,158 +133,75 @@
             opacity: 0.85;
         }
 
-        .link-skip {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--color-text-secondary);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .link-skip:active {
-            color: var(--color-text-primary);
-        }
-
-        @keyframes blurFadeIn {
+        @keyframes blurIn {
             0% {
-                opacity: 0;
                 filter: blur(12px);
             }
             100% {
-                opacity: 1;
                 filter: blur(0);
             }
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes blurOut {
+            0% {
+                filter: blur(0);
+            }
+            100% {
+                filter: blur(12px);
+            }
+        }
+
+        .blur-out {
+            animation: blurOut 0.6s ease-in forwards;
         }
     </style>
 </head>
 <body>
-    <main class="plan-screen">
-        <section class="plan-content">
-            <h1 class="plan-title">Choose your plan</h1>
-            <p class="plan-subtitle">Upgrade anytime. Cancel anytime.</p>
+    <main class="success-screen">
+        <header class="success-header">
+            <img src="blueocean.jpeg" alt="Spark" class="success-logo">
+            <span class="success-brand">Spark</span>
+        </header>
 
-            <div class="plan-cards">
-                <div class="plan-card" id="freePlan">
-                    <div class="plan-header">
-                        <span class="plan-name">Free</span>
-                        <span class="plan-price">$0</span>
-                    </div>
-                    <div class="plan-features">
-                        <div class="plan-feature">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                            <span>3 exits before cooldown</span>
-                        </div>
-                        <div class="plan-feature">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                            <span>Reveal when timer expires</span>
-                        </div>
-                        <div class="plan-feature disabled">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 6L6 18M6 6l12 12"/>
-                            </svg>
-                            <span>No time extensions</span>
-                        </div>
-                        <div class="plan-feature disabled">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 6L6 18M6 6l12 12"/>
-                            </svg>
-                            <span>Standard wait between matches</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="plan-card selected" id="proPlan">
-                    <div class="plan-header">
-                        <span class="plan-name">Pro<span class="plan-badge">Popular</span></span>
-                        <span class="plan-price">$20 <span>/mo</span></span>
-                    </div>
-                    <div class="plan-features">
-                        <div class="plan-feature">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                            <span>Unlimited exits</span>
-                        </div>
-                        <div class="plan-feature">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                            <span>Request reveal anytime</span>
-                        </div>
-                        <div class="plan-feature">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                            <span>Purchase time extensions</span>
-                        </div>
-                        <div class="plan-feature">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                            <span>Shorter wait between matches</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="plan-actions">
-                <button type="button" class="btn-primary" id="continueBtn">Continue with Pro</button>
-                <a href="chat.html" class="link-skip">Continue with Free</a>
-            </div>
+        <section class="success-content">
+            <h1 class="success-title">You're all set</h1>
+            <p class="success-subtitle">Welcome to Spark Pro. Your journey to meaningful connections just got better.</p>
         </section>
+
+        <div class="success-actions">
+            <button type="button" class="btn-primary" id="startBtn">Start chatting</button>
+        </div>
     </main>
 
     <script src="js/api.js"></script>
     <script>
-console.log('Plan script loaded')
+        const startBtn = document.getElementById('startBtn');
+        const successScreen = document.querySelector('.success-screen');
 
-const freePlan = document.getElementById('freePlan')
-const proPlan = document.getElementById('proPlan')
-const continueBtn = document.getElementById('continueBtn')
+        startBtn.addEventListener('click', () => {
+            successScreen.classList.add('blur-out');
+            setTimeout(() => {
+                window.location.href = 'match.html';
+            }, 600);
+        });
 
-console.log('Elements found:', { freePlan, proPlan, continueBtn })
-
-let selectedPlan = 'pro'
-
-freePlan.addEventListener('click', () => {
-    freePlan.classList.add('selected')
-    proPlan.classList.remove('selected')
-    selectedPlan = 'free'
-    continueBtn.textContent = 'Continue with Free'
-})
-
-proPlan.addEventListener('click', () => {
-    proPlan.classList.add('selected')
-    freePlan.classList.remove('selected')
-    selectedPlan = 'pro'
-    continueBtn.textContent = 'Continue with Pro'
-})
-
-continueBtn.addEventListener('click', () => {
-    console.log('Button clicked, selectedPlan:', selectedPlan)
-    if (selectedPlan === 'pro') {
-        const user = JSON.parse(localStorage.getItem('sparkUser'))
-        console.log('User from storage:', user)
-        if (user && user.id) {
-            const successUrl = encodeURIComponent('http://localhost:3000/prosuccess.html')
-            const checkoutUrl = `https://spark-thesocialapp.lemonsqueezy.com/checkout/buy/ee335969-d3c6-4835-8097-2610b43e7f2f?checkout[custom][user_id]=${user.id}&checkout[success_url]=${successUrl}`
-            console.log('Redirecting to:', checkoutUrl)
-            window.location.href = checkoutUrl
-        } else {
-            console.log('No user found, going to login')
-            window.location.href = 'login.html'
+        // Optional: Update user's subscription status in localStorage
+        const user = JSON.parse(localStorage.getItem('sparkUser'));
+        if (user) {
+            user.subscription_tier = 'pro';
+            localStorage.setItem('sparkUser', JSON.stringify(user));
         }
-    } else {
-        console.log('Free plan selected, going to chat')
-        window.location.href = 'chat.html'
-    }
-})
-
-console.log('Event listeners attached')
     </script>
 </body>
 </html>
