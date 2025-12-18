@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Spark">
+    <link rel="apple-touch-icon" href="blueocean.jpeg">
+    <title>Spark – You're In</title>
+    <style>
+        @font-face {
+            font-family: 'CabinetGrotesk-Medium';
+            src: url('./fonts/CabinetGrotesk-Medium.woff2') format('woff2'),
+                 url('./fonts/CabinetGrotesk-Medium.woff') format('woff'),
+                 url('./fonts/CabinetGrotesk-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-display: swap;
+            font-style: normal;
+        }
+
+        :root {
+            --color-background: #000000;
+            --color-surface: #FFFFFF;
+            --color-text-primary: #FFFFFF;
+            --color-text-secondary: rgba(255, 255, 255, 0.65);
+            --color-input-bg: rgba(255, 255, 255, 0.08);
+            --color-input-border: rgba(255, 255, 255, 0.15);
+            --radius-pill: 28px;
+            --radius-input: 16px;
+            --font-heading: 'CabinetGrotesk-Medium', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-heading);
+            background-color: var(--color-background);
+            color: var(--color-text-primary);
+            min-height: 100dvh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .confirmation-screen {
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px 48px;
+            max-width: 428px;
+            margin: 0 auto;
+            animation: blurFadeIn 0.6s ease-out forwards;
+        }
+
+        .confirmation-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .confirmation-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .confirmation-brand {
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+
+        .confirmation-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .confirmation-message {
+            font-size: 32px;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .confirmation-subtitle {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            margin-bottom: 48px;
+            text-align: center;
+        }
+
+        .referral-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+        .referral-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .referral-link-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background-color: var(--color-input-bg);
+            border: 1px solid var(--color-input-border);
+            border-radius: var(--radius-input);
+            padding: 16px 20px;
+        }
+
+        .referral-link {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn-copy {
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+        }
+
+        .btn-copy:active {
+            color: var(--color-text-primary);
+        }
+
+        .btn-copy.copied {
+            color: var(--color-text-primary);
+        }
+
+        @keyframes blurFadeIn {
+            0% {
+                opacity: 0;
+                filter: blur(12px);
+            }
+            100% {
+                opacity: 1;
+                filter: blur(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="confirmation-screen">
+        <header class="confirmation-header">
+            <img src="blueocean.jpeg" alt="Spark" class="confirmation-logo">
+            <span class="confirmation-brand">Spark</span>
+        </header>
+
+        <section class="confirmation-content">
+            <h1 class="confirmation-message">You're on the list!</h1>
+
+            <div class="referral-section">
+                <p class="referral-label">Invite a friend who'd like a date</p>
+                <div class="referral-link-container">
+                    <span class="referral-link" id="referralLink"></span>
+                    <button class="btn-copy" id="copyBtn" aria-label="Copy link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+const BASE_URL = 'https://lethabo3.github.io/sparkadate/waitlist.html';
+
+const urlParams = new URLSearchParams(window.location.search);
+const referralCode = urlParams.get('ref');
+
+const referralLink = document.getElementById('referralLink');
+const copyBtn = document.getElementById('copyBtn');
+
+const fullReferralLink = `${BASE_URL}?ref=${referralCode}`;
+referralLink.textContent = fullReferralLink;
+
+copyBtn.addEventListener('click', async () => {
+    try {
+        await navigator.clipboard.writeText(fullReferralLink);
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+            copyBtn.classList.remove('copied');
+        }, 2000);
+    } catch (err) {
+        console.error('Failed to copy:', err);
+    }
+});
+    </script>
+</body>
+</html>
