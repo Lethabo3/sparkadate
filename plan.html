@@ -301,40 +301,110 @@
         </section>
     </main>
 
+    <script src="js/api.js"></script>
     <script>
-        const freePlan = document.getElementById('freePlan')
-        const proPlan = document.getElementById('proPlan')
-        const continueBtn = document.getElementById('continueBtn')
-    
-        let selectedPlan = 'pro'
-    
-        freePlan.addEventListener('click', () => {
-            freePlan.classList.add('selected')
-            proPlan.classList.remove('selected')
-            selectedPlan = 'free'
-            continueBtn.textContent = 'Continue with Free'
-        })
-    
-        proPlan.addEventListener('click', () => {
-            proPlan.classList.add('selected')
-            freePlan.classList.remove('selected')
-            selectedPlan = 'pro'
-            continueBtn.textContent = 'Continue with Pro'
-        })
-    
-        continueBtn.addEventListener('click', () => {
-            if (selectedPlan === 'pro') {
-                const user = JSON.parse(localStorage.getItem('sparkUser'))
-                if (user && user.id) {
-                    const checkoutUrl = `https://spark-thesocialapp.lemonsqueezy.com/checkout/buy/ee335969-d3c6-4835-8097-2610b43e7f2f?checkout[custom][user_id]=${user.id}`
-                    window.location.href = checkoutUrl
-                } else {
-                    window.location.href = 'login.html'
-                }
-            } else {
-                window.location.href = 'chat.html'
+        const nameInput = document.getElementById('nameInput');
+        const emailInput = document.getElementById('emailInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+        const createBtn = document.getElementById('createBtn');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+        const confirmError = document.getElementById('confirmError');
+
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function validateForm() {
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            const isNameValid = name.length > 0;
+            const isEmailValid = validateEmail(email);
+            const isPasswordValid = password.length >= 8;
+            const isConfirmValid = password === confirmPassword && confirmPassword.length > 0;
+
+            createBtn.disabled = !(isNameValid && isEmailValid && isPasswordValid && isConfirmValid);
+        }
+
+        function showError(input, error) {
+            input.classList.add('error');
+            error.classList.add('visible');
+        }
+
+        function hideError(input, error) {
+            input.classList.remove('error');
+            error.classList.remove('visible');
+        }
+
+        nameInput.addEventListener('input', validateForm);
+
+        emailInput.addEventListener('input', () => {
+            hideError(emailInput, emailError);
+            validateForm();
+        });
+
+        emailInput.addEventListener('blur', () => {
+            if (emailInput.value.trim() && !validateEmail(emailInput.value.trim())) {
+                showError(emailInput, emailError);
             }
-        })
+        });
+
+        passwordInput.addEventListener('input', () => {
+            hideError(passwordInput, passwordError);
+            validateForm();
+        });
+
+        passwordInput.addEventListener('blur', () => {
+            if (passwordInput.value && passwordInput.value.length < 8) {
+                showError(passwordInput, passwordError);
+            }
+        });
+
+        confirmPasswordInput.addEventListener('input', () => {
+            hideError(confirmPasswordInput, confirmError);
+            validateForm();
+        });
+
+        confirmPasswordInput.addEventListener('blur', () => {
+            if (confirmPasswordInput.value && confirmPasswordInput.value !== passwordInput.value) {
+                showError(confirmPasswordInput, confirmError);
+            }
+        });
+
+        createBtn.addEventListener('click', async () => {
+            if (createBtn.disabled) return;
+            
+            createBtn.disabled = true;
+            createBtn.textContent = 'Creating account...';
+    
+            const onboardingData = JSON.parse(localStorage.getItem('sparkUserData') || '{}');
+    
+            const userData = {
+                email: emailInput.value.trim(),
+                password: passwordInput.value,
+                display_name: nameInput.value.trim(),
+                age: onboardingData.age,
+                gender: onboardingData.gender,
+                seeking: onboardingData.seeking,
+                location: onboardingData.location
+            };
+    
+            try {
+                const response = await SparkAPI.auth.signup(userData);
+                console.log('Signup response:', response);
+                console.log('User stored:', localStorage.getItem('sparkUser'));
+                
+                window.location.href = 'plan.html';
+            } catch (error) {
+                alert(error.message || 'Failed to create account');
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Account';
+            }
+        });
     </script>
 </body>
 </html>
