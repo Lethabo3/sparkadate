@@ -301,49 +301,40 @@
         </section>
     </main>
 
-    <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
-
-        const supabase = createClient(
-            'https://tqfplimunahyajxpzrnc.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxZnBsaW11bmFoeWFqeHB6cm5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MzE0ODMsImV4cCI6MjA4MTQwNzQ4M30.PtopCyuu7G0nxCCbpJwLe00kXw7ysqz96K7ZmoxirCY'
-        )
-
+    <script>
         const freePlan = document.getElementById('freePlan')
         const proPlan = document.getElementById('proPlan')
         const continueBtn = document.getElementById('continueBtn')
-
+    
         let selectedPlan = 'pro'
-
+    
         freePlan.addEventListener('click', () => {
             freePlan.classList.add('selected')
             proPlan.classList.remove('selected')
             selectedPlan = 'free'
             continueBtn.textContent = 'Continue with Free'
         })
-
+    
         proPlan.addEventListener('click', () => {
             proPlan.classList.add('selected')
             freePlan.classList.remove('selected')
             selectedPlan = 'pro'
             continueBtn.textContent = 'Continue with Pro'
         })
-
-        continueBtn.addEventListener('click', async () => {
-    if (selectedPlan === 'pro') {
-        const { data, error } = await supabase.auth.getUser()
-        alert('User: ' + JSON.stringify(data?.user?.id) + ' Error: ' + JSON.stringify(error))
-        
-        if (data?.user) {
-const checkoutUrl = `https://spark-thesocialapp.lemonsqueezy.com/checkout/buy/ee335969-d3c6-4835-8097-2610b43e7f2f?checkout[custom][user_id]=${data.user.id}`
-    window.location.href = checkoutUrl
-        } else {
-            window.location.href = 'login.html'
-        }
-    } else {
-        window.location.href = 'chat.html'
-    }
-})
+    
+        continueBtn.addEventListener('click', () => {
+            if (selectedPlan === 'pro') {
+                const user = JSON.parse(localStorage.getItem('sparkUser'))
+                if (user && user.id) {
+                    const checkoutUrl = `https://spark-thesocialapp.lemonsqueezy.com/checkout/buy/ee335969-d3c6-4835-8097-2610b43e7f2f?checkout[custom][user_id]=${user.id}`
+                    window.location.href = checkoutUrl
+                } else {
+                    window.location.href = 'login.html'
+                }
+            } else {
+                window.location.href = 'chat.html'
+            }
+        })
     </script>
 </body>
 </html>
