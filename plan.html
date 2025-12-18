@@ -335,8 +335,8 @@
         alert('User: ' + JSON.stringify(data?.user?.id) + ' Error: ' + JSON.stringify(error))
         
         if (data?.user) {
-            const checkoutUrl = `https://spark.lemonsqueezy.com/checkout/buy/1157917?checkout[custom][user_id]=${data.user.id}`
-            window.location.href = checkoutUrl
+const checkoutUrl = `https://spark-thesocialapp.lemonsqueezy.com/checkout/buy/ee335969-d3c6-4835-8097-2610b43e7f2f?checkout[custom][user_id]=${data.user.id}`
+    window.location.href = checkoutUrl
         } else {
             window.location.href = 'login.html'
         }
