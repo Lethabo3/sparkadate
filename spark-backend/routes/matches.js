@@ -7,30 +7,30 @@ const router = express.Router();
 
 router.get('/debug', authenticateToken, async (req, res) => {
     const userId = req.user.id;
-    
+
     const { data: user } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single();
-    
+
     const { data: candidates } = await supabase
         .from('users')
         .select('*')
         .neq('id', userId);
-    
+
     const genderMap = { man: 'men', woman: 'women' };
-    
+
     const results = candidates.map(c => ({
         name: c.display_name,
         gender: c.gender,
         seeking: c.seeking,
         userSeeks: user.seeking === 'everyone' || user.seeking === genderMap[c.gender],
         candidateSeeks: c.seeking === 'everyone' || c.seeking === genderMap[user.gender],
-        wouldMatch: (user.seeking === 'everyone' || user.seeking === genderMap[c.gender]) && 
-                   (c.seeking === 'everyone' || c.seeking === genderMap[user.gender])
+        wouldMatch: (user.seeking === 'everyone' || user.seeking === genderMap[c.gender]) &&
+            (c.seeking === 'everyone' || c.seeking === genderMap[user.gender])
     }));
-    
+
     res.json({
         currentUser: { gender: user.gender, seeking: user.seeking },
         candidates: results
@@ -150,7 +150,7 @@ router.post('/find', authenticateToken, async (req, res) => {
         console.log('Users in active matches:', [...matchedUserIds]);
         console.log('Previous match user IDs:', [...previousMatchUserIds]);
 
-        const availableCandidates = candidates.filter(c => 
+        const availableCandidates = candidates.filter(c =>
             !matchedUserIds.has(c.id) && !previousMatchUserIds.has(c.id)
         );
 
@@ -190,7 +190,7 @@ router.post('/find', authenticateToken, async (req, res) => {
             console.error('Gemini error (continuing with defaults):', geminiError.message);
         }
 
-const revealHours = compatibility?.recommended_reveal_hours || Math.floor(Math.random() * 8760) + 1;
+        const revealHours = compatibility?.recommended_reveal_hours || Math.floor(Math.random() * 108) + 12;
         const revealAvailableAt = new Date(Date.now() + revealHours * 60 * 60 * 1000);
 
         console.log('Creating match between', userId, 'and', candidate.id);
@@ -321,6 +321,39 @@ router.post('/:matchId/exit', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Exit match error:', error);
         res.status(500).json({ error: 'Failed to exit match' });
+    }
+});
+
+// Get match partner's photos
+router.get('/:matchId/photos', authenticateToken, async (req, res) => {
+    try {
+        const { matchId } = req.params;
+        const userId = req.user.id;
+
+        const { data: match } = await supabase
+            .from('matches')
+            .select('*')
+            .eq('id', matchId)
+            .single();
+
+        if (!match || (match.user_a_id !== userId && match.user_b_id !== userId)) {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+
+        const partnerId = match.user_a_id === userId ? match.user_b_id : match.user_a_id;
+
+        const { data: photos, error } = await supabase
+            .from('user_photos')
+            .select('*')
+            .eq('user_id', partnerId)
+            .order('upload_order', { ascending: true });
+
+        if (error) throw error;
+
+        res.json({ photos: photos || [] });
+    } catch (error) {
+        console.error('Get match photos error:', error);
+        res.status(500).json({ error: 'Failed to get photos' });
     }
 });
 
