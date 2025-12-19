@@ -66,6 +66,8 @@ router.get('/current', authenticateToken, async (req, res) => {
                 },
                 matched_at: match.matched_at,
                 reveal_available_at: match.reveal_available_at,
+                reveal_requested_by: match.reveal_requested_by,
+                reveal_requested_at: match.reveal_requested_at,
                 status: match.status
             }
         });
