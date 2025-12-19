@@ -29,6 +29,7 @@
             --color-input-border: rgba(255, 255, 255, 0.12);
             --color-bubble-sent: rgba(255, 255, 255, 0.12);
             --color-bubble-received: rgba(255, 255, 255, 0.18);
+            --color-notification: #FF3B30;
             --radius-bubble: 20px;
             --radius-input: 24px;
             --font-heading: 'CabinetGrotesk-Medium', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -82,6 +83,7 @@
             gap: 6px;
         }
         .btn-icon {
+            position: relative;
             width: 36px;
             height: 36px;
             display: flex;
@@ -101,6 +103,24 @@
             width: 18px;
             height: 18px;
             stroke: var(--color-text-primary);
+        }
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 18px;
+            height: 18px;
+            background-color: var(--color-notification);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--color-surface);
+        }
+        .notification-badge.visible {
+            display: flex;
         }
         .chat-messages {
             flex: 1;
@@ -271,11 +291,12 @@
                         <path d="M12 6v6l4 2"/>
                     </svg>
                 </a>
-                <a href="reveal.html" class="btn-icon" title="Request reveal">
+                <a href="#" class="btn-icon" id="revealBtn" title="Request reveal">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                         <circle cx="12" cy="12" r="3"/>
                     </svg>
+                    <span class="notification-badge" id="revealNotification">1</span>
                 </a>
             </div>
         </header>
@@ -310,6 +331,8 @@
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
         const typingIndicator = document.getElementById('typingIndicator');
+        const revealBtn = document.getElementById('revealBtn');
+        const revealNotification = document.getElementById('revealNotification');
 
         const matchData = JSON.parse(localStorage.getItem('sparkCurrentMatch') || '{}');
         let matchId = matchData.id;
@@ -319,6 +342,31 @@
 
         if (!SparkAPI.auth.isLoggedIn()) {
             window.location.href = 'landing.html';
+        }
+
+        async function checkRevealRequest() {
+            try {
+                const { match } = await SparkAPI.matches.getCurrent();
+                
+                if (!match) return;
+
+                const currentUser = SparkAPI.auth.getCurrentUser();
+                
+                if (match.status === 'revealed') {
+                    window.location.href = 'revealed.html';
+                    return;
+                }
+
+                if (match.reveal_requested_by && match.reveal_requested_by !== currentUser.id) {
+                    revealNotification.classList.add('visible');
+                    revealBtn.href = 'revealrequest.html';
+                } else {
+                    revealNotification.classList.remove('visible');
+                    revealBtn.href = 'reveal.html';
+                }
+            } catch (error) {
+                console.error('Check reveal request error:', error);
+            }
         }
 
         async function loadMessages() {
@@ -401,8 +449,11 @@
             }
         }
 
+        checkRevealRequest();
+
         loadMessages().then(() => {
             setInterval(pollMessages, 3000);
+            setInterval(checkRevealRequest, 5000);
         });
     </script>
 </body>
