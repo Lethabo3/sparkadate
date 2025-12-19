@@ -219,6 +219,7 @@
         </section>
     </main>
 
+    <script src="js/api.js"></script>
     <script>
         const nameInput = document.getElementById('nameInput');
         const emailInput = document.getElementById('emailInput');
@@ -292,43 +293,40 @@
             }
         });
 
-        // Replace old localStorage handler with API call
         createBtn.addEventListener('click', async () => {
             if (createBtn.disabled) return;
-            
+
             createBtn.disabled = true;
             createBtn.textContent = 'Creating account...';
-    
-            // Get onboarding data
+
             const onboardingData = JSON.parse(localStorage.getItem('sparkUserData') || '{}');
-    
+
             const userData = {
-    email: emailInput.value.trim(),
-    password: passwordInput.value,
-    display_name: nameInput.value.trim(),
-    age: onboardingData.age,
-    gender: onboardingData.gender,
-    seeking: onboardingData.seeking,
-    location: onboardingData.location
-};
-    
+                email: emailInput.value.trim(),
+                password: passwordInput.value,
+                display_name: nameInput.value.trim(),
+                age: onboardingData.age,
+                gender: onboardingData.gender,
+                seeking: onboardingData.seeking,
+                location: onboardingData.location
+            };
+
             try {
                 await SparkAPI.auth.signup(userData);
-                
-                // Upload photos if any (optional - don't fail signup if this fails)
+
                 if (onboardingData.photos && onboardingData.photos.length > 0) {
+                    createBtn.textContent = 'Uploading photos...';
+                    
                     try {
                         for (let i = 0; i < onboardingData.photos.length; i++) {
-                            // Skip base64 photos for now - need to upload to Supabase Storage first
-                            // Photos will be added later when we implement file upload
-                            console.log('Photo upload skipped - will implement Supabase Storage upload');
+                            await SparkAPI.users.uploadPhoto(onboardingData.photos[i], i);
                         }
                     } catch (photoError) {
                         console.warn('Photo upload failed:', photoError);
-                        // Continue anyway - photos can be added later
                     }
                 }
-                
+
+                localStorage.removeItem('sparkUserData');
                 window.location.href = 'plan.html';
             } catch (error) {
                 alert(error.message || 'Failed to create account');
@@ -336,8 +334,6 @@
                 createBtn.textContent = 'Create Account';
             }
         });
-    </script>
-    <script src="js/api.js"></script>
     </script>
 </body>
 </html>
