@@ -224,6 +224,14 @@
         revealedName.textContent = matchData.name || 'Unknown';
         revealedAge.textContent = `${matchData.age || '??'} years old`;
 
+        async function markRevealSeen() {
+            try {
+                await SparkAPI.matches.markRevealSeen(matchData.id);
+            } catch (error) {
+                console.error('Failed to mark reveal as seen:', error);
+            }
+        }
+
         async function loadMatchPhoto() {
             try {
                 const { photos } = await SparkAPI.matches.getMatchPhotos(matchData.id);
@@ -255,6 +263,7 @@
             }
         }
 
+        markRevealSeen();
         loadMatchPhoto();
 
         stayBtn.addEventListener('click', () => {
