@@ -207,18 +207,24 @@
             window.location.href = 'landing.html';
         }
 
-        // Check if already revealed on page load
         async function checkInitialStatus() {
             try {
                 const { match } = await SparkAPI.matches.getCurrent();
-                if (match && match.status === 'revealed') {
-                    window.location.href = 'revealed.html';
+                if (!match) return;
+
+                const currentUser = SparkAPI.auth.getCurrentUser();
+                
+                if (match.status === 'revealed') {
+                    const seenBy = match.revealed_seen_by || [];
+                    if (!seenBy.includes(currentUser.id)) {
+                        window.location.href = 'revealed.html';
+                        return;
+                    }
+                    window.location.href = 'chat.html';
                     return;
                 }
                 
-                // If we already requested reveal, show waiting state
-                const currentUser = SparkAPI.auth.getCurrentUser();
-                if (match && match.reveal_requested_by === currentUser.id) {
+                if (match.reveal_requested_by === currentUser.id) {
                     showWaitingState();
                     startPolling();
                 }
@@ -235,25 +241,28 @@
         }
 
         function startPolling() {
-            // Clear any existing interval
             if (pollInterval) {
                 clearInterval(pollInterval);
             }
 
-            // Poll every 2 seconds for faster response
             pollInterval = setInterval(async () => {
                 try {
                     const { match } = await SparkAPI.matches.getCurrent();
                     
                     if (match && match.status === 'revealed') {
                         clearInterval(pollInterval);
-                        // Brief transition message
-                        revealTitle.textContent = 'Revealed!';
-                        revealSubtitle.textContent = 'Redirecting...';
                         
-                        setTimeout(() => {
-                            window.location.href = 'revealed.html';
-                        }, 500);
+                        const currentUser = SparkAPI.auth.getCurrentUser();
+                        const seenBy = match.revealed_seen_by || [];
+                        
+                        if (!seenBy.includes(currentUser.id)) {
+                            revealTitle.textContent = 'Revealed!';
+                            revealSubtitle.textContent = 'Redirecting...';
+                            
+                            setTimeout(() => {
+                                window.location.href = 'revealed.html';
+                            }, 500);
+                        }
                     }
                 } catch (error) {
                     console.error('Polling error:', error);
@@ -277,7 +286,6 @@
                 const result = await SparkAPI.matches.requestReveal(matchData.id);
 
                 if (result.revealed) {
-                    // Both users have now revealed - redirect immediately
                     revealTitle.textContent = 'Revealed!';
                     revealSubtitle.textContent = 'Redirecting...';
                     
@@ -296,17 +304,14 @@
             }
         });
 
-        // Clean up polling when page is hidden/closed
         document.addEventListener('visibilitychange', () => {
             if (document.hidden && pollInterval) {
                 clearInterval(pollInterval);
             } else if (!document.hidden && revealActions.classList.contains('hidden')) {
-                // Resume polling when page becomes visible again
                 startPolling();
             }
         });
 
-        // Check status on load
         checkInitialStatus();
     </script>
 </body>
