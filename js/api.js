@@ -1,11 +1,4 @@
-/**
- * Spark API Configuration
- * Change this to http://localhost:3000/api for local testing
- * or your ngrok URL for mobile/external testing.
- */
 const API_BASE_URL = 'https://sparkadate-production.up.railway.app/api';
-
-// --- Token Management Helpers ---
 
 function getToken() {
     return localStorage.getItem('sparkToken');
@@ -19,15 +12,12 @@ function removeToken() {
     localStorage.removeItem('sparkToken');
 }
 
-// --- Core Request Engine ---
-
 async function apiRequest(endpoint, options = {}) {
     const token = getToken();
 
     const config = {
         headers: {
             'Content-Type': 'application/json',
-            // Required to bypass the ngrok warning page during testing
             'ngrok-skip-browser-warning': 'true', 
             ...(token && { 'Authorization': `Bearer ${token}` })
         },
@@ -37,7 +27,6 @@ async function apiRequest(endpoint, options = {}) {
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
         
-        // 1. Check if the response actually has JSON content to parse
         const contentType = response.headers.get("content-type");
         let data = null;
         
@@ -45,9 +34,7 @@ async function apiRequest(endpoint, options = {}) {
             data = await response.json();
         }
 
-        // 2. Handle HTTP errors (400s, 500s)
         if (!response.ok) {
-            // If the server didn't send a JSON error message, use the status text
             throw new Error(data?.error || `Request failed with status: ${response.status}`);
         }
 
@@ -57,8 +44,6 @@ async function apiRequest(endpoint, options = {}) {
         throw error;
     }
 }
-
-// --- API Service Modules ---
 
 const auth = {
     async signup(userData) {
@@ -135,7 +120,6 @@ const users = {
         formData.append('upload_order', index);
 
         const token = getToken();
-        // Note: FormData requests don't need 'Content-Type': 'application/json'
         const res = await fetch(`${API_BASE_URL}/users/me/photos/upload`, {
             method: 'POST',
             headers: {
@@ -202,7 +186,6 @@ const messages = {
     }
 };
 
-// --- Export for use in other scripts ---
 const SparkAPI = {
     auth,
     users,
