@@ -48,7 +48,9 @@ router.get('/current', authenticateToken, async (req, res) => {
                 user_b:users!matches_user_b_id_fkey(id, display_name, age)
             `)
             .or(`user_a_id.eq.${userId},user_b_id.eq.${userId}`)
-            .eq('status', 'active')
+            .in('status', ['active', 'revealed'])
+            .order('matched_at', { ascending: false })
+            .limit(1)
             .single();
 
         if (!match) {
@@ -68,6 +70,7 @@ router.get('/current', authenticateToken, async (req, res) => {
                 reveal_available_at: match.reveal_available_at,
                 reveal_requested_by: match.reveal_requested_by,
                 reveal_requested_at: match.reveal_requested_at,
+                revealed_seen_by: match.revealed_seen_by || [],
                 status: match.status
             }
         });
@@ -86,7 +89,7 @@ router.post('/find', authenticateToken, async (req, res) => {
             .from('matches')
             .select('id')
             .or(`user_a_id.eq.${userId},user_b_id.eq.${userId}`)
-            .eq('status', 'active')
+            .in('status', ['active', 'revealed'])
             .single();
 
         if (existingMatch) {
@@ -120,7 +123,7 @@ router.post('/find', authenticateToken, async (req, res) => {
         const { data: activeMatchUserIds } = await supabase
             .from('matches')
             .select('user_a_id, user_b_id')
-            .eq('status', 'active');
+            .in('status', ['active', 'revealed']);
 
         const matchedUserIds = new Set();
         activeMatchUserIds?.forEach(m => {
@@ -279,6 +282,39 @@ router.post('/:matchId/reveal', authenticateToken, async (req, res) => {
     }
 });
 
+router.post('/:matchId/seen', authenticateToken, async (req, res) => {
+    try {
+        const { matchId } = req.params;
+        const userId = req.user.id;
+
+        const { data: match } = await supabase
+            .from('matches')
+            .select('*')
+            .eq('id', matchId)
+            .single();
+
+        if (!match || (match.user_a_id !== userId && match.user_b_id !== userId)) {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+
+        if (match.status !== 'revealed') {
+            return res.status(400).json({ error: 'Match not yet revealed' });
+        }
+
+        const { error } = await supabase.rpc('add_to_revealed_seen_by', {
+            match_id: matchId,
+            user_id: userId
+        });
+
+        if (error) throw error;
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Mark reveal seen error:', error);
+        res.status(500).json({ error: 'Failed to mark reveal as seen' });
+    }
+});
+
 router.post('/:matchId/exit', authenticateToken, async (req, res) => {
     try {
         const { matchId } = req.params;
@@ -326,7 +362,6 @@ router.post('/:matchId/exit', authenticateToken, async (req, res) => {
     }
 });
 
-// Get match partner's photos
 router.get('/:matchId/photos', authenticateToken, async (req, res) => {
     try {
         const { matchId } = req.params;
