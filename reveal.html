@@ -77,10 +77,25 @@
             margin-bottom: 24px;
         }
 
+        .reveal-icon.waiting {
+            animation: pulse 2s infinite ease-in-out;
+        }
+
         .reveal-icon svg {
             width: 48px;
             height: 48px;
             stroke: var(--color-surface);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.08);
+                opacity: 0.7;
+            }
         }
 
         .reveal-title {
@@ -160,7 +175,7 @@
 <body>
     <main class="reveal-screen">
         <section class="reveal-content">
-            <div class="reveal-icon">
+            <div class="reveal-icon" id="revealIcon">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                     <circle cx="12" cy="12" r="3"/>
@@ -178,51 +193,121 @@
 
     <script src="js/api.js"></script>
     <script>
+        const revealIcon = document.getElementById('revealIcon');
         const revealTitle = document.getElementById('revealTitle');
         const revealSubtitle = document.getElementById('revealSubtitle');
         const revealActions = document.getElementById('revealActions');
         const requestBtn = document.getElementById('requestBtn');
         const cancelBtn = document.getElementById('cancelBtn');
-    
+
         const matchData = JSON.parse(localStorage.getItem('sparkCurrentMatch') || '{}');
-    
+        let pollInterval = null;
+
         if (!SparkAPI.auth.isLoggedIn()) {
             window.location.href = 'landing.html';
         }
-    
+
+        // Check if already revealed on page load
+        async function checkInitialStatus() {
+            try {
+                const { match } = await SparkAPI.matches.getCurrent();
+                if (match && match.status === 'revealed') {
+                    window.location.href = 'revealed.html';
+                    return;
+                }
+                
+                // If we already requested reveal, show waiting state
+                const currentUser = SparkAPI.auth.getCurrentUser();
+                if (match && match.reveal_requested_by === currentUser.id) {
+                    showWaitingState();
+                    startPolling();
+                }
+            } catch (error) {
+                console.error('Initial status check error:', error);
+            }
+        }
+
+        function showWaitingState() {
+            revealTitle.textContent = 'Reveal requested';
+            revealSubtitle.textContent = `Waiting for ${matchData.name || 'your match'} to accept.`;
+            revealActions.classList.add('hidden');
+            revealIcon.classList.add('waiting');
+        }
+
+        function startPolling() {
+            // Clear any existing interval
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+
+            // Poll every 2 seconds for faster response
+            pollInterval = setInterval(async () => {
+                try {
+                    const { match } = await SparkAPI.matches.getCurrent();
+                    
+                    if (match && match.status === 'revealed') {
+                        clearInterval(pollInterval);
+                        // Brief transition message
+                        revealTitle.textContent = 'Revealed!';
+                        revealSubtitle.textContent = 'Redirecting...';
+                        
+                        setTimeout(() => {
+                            window.location.href = 'revealed.html';
+                        }, 500);
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 2000);
+        }
+
         cancelBtn.addEventListener('click', () => {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
             window.location.href = 'chat.html';
         });
-    
+
         requestBtn.addEventListener('click', async () => {
             revealTitle.textContent = 'Requesting reveal...';
             revealSubtitle.textContent = '';
             revealActions.classList.add('hidden');
-    
+
             try {
                 const result = await SparkAPI.matches.requestReveal(matchData.id);
-    
+
                 if (result.revealed) {
-                    window.location.href = 'revealed.html';
-                } else if (result.waiting_for_partner) {
-                    revealTitle.textContent = 'Reveal requested';
-                    revealSubtitle.textContent = `Waiting for ${matchData.name || 'your match'} to accept.`;
+                    // Both users have now revealed - redirect immediately
+                    revealTitle.textContent = 'Revealed!';
+                    revealSubtitle.textContent = 'Redirecting...';
                     
-                    // Poll for reveal status
-                    const pollReveal = setInterval(async () => {
-                        const { match } = await SparkAPI.matches.getCurrent();
-                        if (match && match.status === 'revealed') {
-                            clearInterval(pollReveal);
-                            window.location.href = 'revealed.html';
-                        }
-                    }, 3000);
+                    setTimeout(() => {
+                        window.location.href = 'revealed.html';
+                    }, 500);
+                } else if (result.waiting_for_partner) {
+                    showWaitingState();
+                    startPolling();
                 }
             } catch (error) {
                 revealTitle.textContent = 'Request failed';
                 revealSubtitle.textContent = error.message || 'Please try again';
                 revealActions.classList.remove('hidden');
+                revealIcon.classList.remove('waiting');
             }
         });
+
+        // Clean up polling when page is hidden/closed
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && pollInterval) {
+                clearInterval(pollInterval);
+            } else if (!document.hidden && revealActions.classList.contains('hidden')) {
+                // Resume polling when page becomes visible again
+                startPolling();
+            }
+        });
+
+        // Check status on load
+        checkInitialStatus();
     </script>
 </body>
 </html>
