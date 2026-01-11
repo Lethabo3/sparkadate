@@ -1,3 +1,16 @@
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { createClient } from '@supabase/supabase-js';
+
+const router = express.Router();
+
+// Initialize Supabase (Ensure these match your .env keys)
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_KEY
+);
+
 // Sign up
 router.post('/signup', async (req, res) => {
     try {
@@ -45,7 +58,11 @@ router.post('/signup', async (req, res) => {
             .insert({ user_id: user.id });
 
         // Generate token
-        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign(
+            { id: user.id, email: user.email }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: '7d' }
+        );
 
         res.status(201).json({
             user: {
@@ -60,3 +77,6 @@ router.post('/signup', async (req, res) => {
         res.status(500).json({ error: 'Failed to create account' });
     }
 });
+
+// IMPORTANT: This line fixes the "SyntaxError: does not provide an export named default"
+export default router;
