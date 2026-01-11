@@ -1,5 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000/api';
-
+const API_BASE_URL = 'https://sparkadate-production.up.railway.app/api';
 function getToken() {
     return localStorage.getItem('sparkToken');
 }
